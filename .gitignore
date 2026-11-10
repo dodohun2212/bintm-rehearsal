@@ -1,0 +1,13 @@
+# 키 파일 (절대 커밋하지 않는다)
+.streamlit/secrets.toml
+# 실제 강의자료·녹음 (공개 저장소에 넣지 않는다)
+실제자료_비공개/
+*.m4a
+*.mp3
+# 파이썬 부산물
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.claude/
