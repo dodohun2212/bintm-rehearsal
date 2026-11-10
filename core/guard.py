@@ -22,6 +22,18 @@ def session_left(used: int, limit: int) -> int:
     return max(0, limit - used)
 
 
+def refund(failed: bool, ai_called: bool, ai_calls: int) -> tuple[bool, bool]:
+    """분석 1번을 돌려줄지 (세션, 하루).
+
+    - AI를 부르기 전에 실패(스캔 PDF 등): 둘 다 돌려준다.
+    - AI를 부른 뒤 실패: 돌려주지 않는다(비용이 이미 나갔다).
+    - 성공했지만 저장된 결과만 썼다(AI 호출 0번): 하루 횟수만 돌려준다.
+    """
+    if failed:
+        return (True, True) if not ai_called else (False, False)
+    return (False, ai_calls == 0)
+
+
 class DailyCounter:
     """서버 전체 하루 횟수. 날짜가 바뀌면 0부터. 잠금으로 스레드 안전. limit 0은 제한 없음."""
 

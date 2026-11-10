@@ -90,3 +90,30 @@ def test_t39_usage_merge_counts_each_call():
     session.add(100, 35)
     assert session.calls == 3
     assert session.input_tokens == 310 and session.output_tokens == 125
+
+
+def test_t37_second_session_reuses_sample_questions():
+    """두 세션이 샘플 진단을 하면 두 번째는 AI 호출이 0번이다(AppTest, 가짜 AI)."""
+    import streamlit as st
+
+    from tests.apphelp import new_app, sample_to_s03
+
+    st.cache_resource.clear()  # 앞 테스트가 채운 서버 공용 캐시를 비우고 시작
+    st.cache_data.clear()
+    first = sample_to_s03(new_app())
+    assert first.session_state["usage"].calls > 0
+    second = sample_to_s03(new_app())
+    assert not second.exception
+    assert len(second.session_state["questions"]) == len(first.session_state["questions"])
+    assert second.session_state["usage"].calls == 0
+
+
+def test_t38_quick_diag_targets():
+    from core.diagnose import diag_targets
+
+    pcts = [100, 90, 80, 70, 60, 50, 40, 30, 25, 20, 19, 10, 0]
+    scores = [{"concept_id": f"c{i}", "pct": p} for i, p in enumerate(pcts)]
+    assert len(diag_targets(scores)) == 10
+    assert diag_targets(scores, top=None) == diag_targets(scores)
+    assert diag_targets(scores, top=5) == ["c0", "c1", "c2", "c3", "c4"]
+    assert len(diag_targets(scores, top=50)) == 10

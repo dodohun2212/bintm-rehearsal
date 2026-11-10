@@ -52,6 +52,7 @@ def run_analysis(name: str, data: bytes, transcript: str | None, source: str | N
                 notices.append(f"{C.ERRORS['E-13']} (E-13)")
             if audio and not transcript:
                 status.write("녹음 받아쓰는 중")
+                ai_called = True  # 받아쓰기도 외부 AI 호출이다
                 try:
                     transcript = stt.transcribe(*audio)
                     source = "audio"
@@ -74,24 +75,19 @@ def run_analysis(name: str, data: bytes, transcript: str | None, source: str | N
             meta = score.meta_pages(material["pages"], concepts)
             scores = score.compute_scores(concepts["concepts"], utts, meta)["scores"]
             status.update(label="분석이 끝났어요", state="complete")
-    except (ScannedPdfError, UnsupportedFileError) as exc:
-        C.give_back_analysis()
-        C.show_error("E-03" if isinstance(exc, ScannedPdfError) else "E-01")
-        return
-    except NoConceptsError:
-        _account(sinks, started)
-        C.show_error("E-09")
-        return
-    except Exception as exc:  # AI 호출 실패 등
+    except Exception as exc:
         calls = _account(sinks, started)
-        if not ai_called or (calls == 0 and isinstance(exc, llm.KeyMissingError)):
-            C.give_back_analysis()  # AI를 부르기 전에 실패했을 때만 돌려준다
-        code = C.error_code(exc)
-        C.show_error(code, f"{type(exc).__name__}: {exc}")
+        _refund(True, ai_called, calls)
+        if isinstance(exc, ScannedPdfError):
+            C.show_error("E-03")
+        elif isinstance(exc, UnsupportedFileError):
+            C.show_error("E-01")
+        elif isinstance(exc, NoConceptsError):
+            C.show_error("E-09")
+        else:  # AI 호출 실패 등
+            C.show_error(C.error_code(exc), f"{type(exc).__name__}: {exc}")
         return
-    calls = _account(sinks, started)
-    if calls == 0:
-        C.give_back_daily_only()  # 저장된 결과만으로 끝난 분석은 하루 횟수에서 빼지 않는다
+    _refund(False, ai_called, _account(sinks, started))
     C.clear_after_analysis()
     targets = diagnose.diag_targets(scores)
     st.session_state.update(
@@ -102,6 +98,15 @@ def run_analysis(name: str, data: bytes, transcript: str | None, source: str | N
         quick_diag=diagnose.quick_default(len(targets), from_sample), notices=notices, step=2,
     )
     st.rerun()
+
+
+def _refund(failed: bool, ai_called: bool, calls: int) -> None:
+    """AI를 부르기 전 실패는 둘 다, 저장된 결과만 쓴 분석은 하루 횟수만 돌려준다(guard.refund)."""
+    session_back, daily_back = guard.refund(failed, ai_called, calls)
+    if session_back:
+        C.give_back_analysis()
+    elif daily_back:
+        C.give_back_daily_only()
 
 
 def _account(sinks: list[dict], started: float) -> int:

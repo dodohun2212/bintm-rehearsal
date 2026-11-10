@@ -116,7 +116,8 @@ def figure_html(fig: dict | None) -> str:
         return ""
     cap = f'<div class="fig-cap">{html.escape(fig["caption"])}</div>' if fig.get("caption") else ""
     if fig["kind"] == "tree":
-        body = f'<img class="fig-tree" alt="문제 그림: 이진 트리" src="{tree_data_uri(fig)}" style="max-width:100%"/>'
+        alt = html.escape(figure_text(fig), quote=True)
+        body = f'<img class="fig-tree" alt="{alt}" src="{tree_data_uri(fig)}" style="max-width:100%"/>'
     elif fig["kind"] == "array":
         idx = "".join(f'<td style="{_TD}color:#64748b;font-size:12px">{i + fig["start"]}</td>' for i in range(len(fig["items"])))
         vals = "".join(f'<td style="{_TD}font-weight:600">{html.escape(v)}</td>' for v in fig["items"])

@@ -38,6 +38,8 @@ def render() -> None:
         ("입력 · 출력 토큰", f"{usage.input_tokens:,} · {usage.output_tokens:,}"),
         ("단계별 걸린 시간", " · ".join(f"{k} {v:.1f}초" for k, v in times.items()) or "-"),
         ("분석 횟수 (이 화면)", f"{st.session_state['analyses_used']} / {config.MAX_ANALYSES_PER_SESSION}"),
+        ("오늘 서버 전체 분석 횟수", f"{C.daily_analyses().count} / {config.MAX_ANALYSES_PER_DAY}"),
+        ("오늘 서버 전체 AI 호출 수", f"{C.daily_calls().count} / {config.MAX_AI_CALLS_PER_DAY}"),
     ]
     st.markdown("#### 현재 설정과 사용량")
     C.html_block("<table style='border-collapse:collapse;width:100%'>" + "".join(

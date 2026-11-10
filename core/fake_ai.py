@@ -27,8 +27,12 @@ def _pages(prompt: str) -> list[int]:
 
 
 def _block(prompt: str, tag: str) -> str:
-    m = re.search(rf"<{tag}>\n?(.*?)\n?</{tag}>", prompt, re.S)
-    return m.group(1).strip() if m else ""
+    """마지막 <tag>…</tag> 안의 글. 프롬프트 설명에도 태그 이름이 나오므로 마지막 것을 쓴다."""
+    start = prompt.rfind(f"<{tag}>")
+    end = prompt.find(f"</{tag}>", start)
+    if start < 0 or end < 0:
+        return ""
+    return prompt[start + len(tag) + 2 : end].strip()
 
 
 def answer(prompt: str) -> dict:

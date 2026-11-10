@@ -53,7 +53,8 @@ details{margin:8px 0}summary{cursor:pointer;font-weight:600}.fig-cap{font-size:1
 
 
 def esc(text) -> str:
-    return html.escape("" if text is None else str(text))
+    """본문 글 이스케이프(태그만 막고 따옴표는 그대로 둔다. 속성 값에는 쓰지 않는다)."""
+    return html.escape("" if text is None else str(text), quote=False)
 
 
 def rich(text) -> str:
@@ -88,7 +89,7 @@ def _info_line(data: dict) -> str:
 
 
 def _stats(items: list[tuple[str, int]]) -> str:
-    return '<div class="stats">' + "".join(f'<div class="stat">{esc(k)}<b>{v}</b></div>' for k, v in items) + "</div>"
+    return '<div class="stats">' + "".join(f'<div class="stat">{esc(k)} <b>{v}</b></div>' for k, v in items) + "</div>"
 
 
 def evidence_badges(score_row: dict | None) -> str:
