@@ -5,7 +5,7 @@ import base64
 import math
 import re
 
-from core.html import esc
+from core.html import esc, esc_attr
 
 MAX_TREE = 31
 MAX_COLS = 6
@@ -92,7 +92,8 @@ def figure_html(fig: dict | None) -> str:
     cap = f'<div class="cap">{esc(fig["caption"])}</div>' if fig.get("caption") else ""
     if fig["kind"] == "tree":
         b64 = base64.b64encode(tree_svg(fig["nodes"]).encode("utf-8")).decode("ascii")
-        body = f'<img alt="문제 트리 그림" src="data:image/svg+xml;base64,{b64}">'
+        alt = esc_attr(figure_text(fig) or "문제 트리 그림")
+        body = f'<img alt="{alt}" src="data:image/svg+xml;base64,{b64}">'
     elif fig["kind"] == "array":
         vals = "".join(f"<td>{esc(v)}</td>" for v in fig["items"])
         idx = "".join(f"<td>{i + fig['start']}</td>" for i in range(len(fig["items"])))

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 def render_page(pdf_bytes: bytes | None, n: int, width: int = 900) -> bytes | None:
     """n쪽(1부터)을 가로 width px JPEG로. PDF가 아니거나 범위 밖이면 None."""
-    if not pdf_bytes or n < 1:
+    if not pdf_bytes or n < 1 or not pdf_bytes[:1024].lstrip().startswith(b"%PDF"):
         return None
     try:
         import pymupdf

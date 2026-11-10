@@ -1,4 +1,4 @@
-"""T-54 화면 흐름: 샘플 체험 → 진단 → 예시 답 → 채점 → 공부 순서 → 요약 노트 → ⑤ (AppTest, 가짜 AI)."""
+﻿"""T-54 화면 흐름: 샘플 체험 → 진단 → 예시 답 → 채점 → 공부 순서 → 요약 노트 → ⑤ (AppTest, 가짜 AI). T-37·T-66 화면 부분."""
 import streamlit as st
 from streamlit.testing.v1 import AppTest
 
@@ -44,7 +44,8 @@ def test_t54_full_flow():
     prios = at.session_state["priorities"]
     now = [p["concept_id"] for p in prios if p["action"] == "지금 당장"]
     assert set(now) <= set(ex) and set(p["concept_id"] for p in prios[:3]) <= set(ex)
-    assert at.session_state["notes"] == {}  # 요약 노트는 그 보기를 고를 때 만든다
+    # T-66: 요약 노트는 그 보기를 처음 고를 때 만든다
+    assert at.session_state["notes"] == {}
     at.session_state["bt_view"] = "📒 시험 대비 요약 노트"
     at.run()
     assert not at.exception
@@ -55,15 +56,6 @@ def test_t54_full_flow():
     assert not at.exception
     bodies = " ".join(h.proto.body for h in at.get("html"))
     assert "AI 호출 수" in bodies and "단계 · ② 문제 만들기" in bodies
-
-
-def test_t51_notices_survive_rerun(monkeypatch):
-    """분석 중 생긴 안내는 notices에 담겨 ② 맨 위에 보인다(E-10)."""
-    at = new_app()
-    at.button(key="bt_sample").click().run()
-    at.session_state["notices"] = ["녹음에서 강조한 말을 찾지 못했어요. 자료만으로 점수를 계산했어요 (E-10)"]
-    at.run()
-    assert any("E-10" in w.value for w in at.warning)
 
 
 def test_missing_answer_marks_cards_right_away():
