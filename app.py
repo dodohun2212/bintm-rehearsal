@@ -78,7 +78,7 @@ STATUS_CLASS = {"앎": "ok", "헷갈림": "mid", "모름": "bad", "진단 안 �
 
 CSS = """
 <style>
-.block-container{max-width:860px;padding-top:2rem}
+.block-container{max-width:860px;padding-top:4.5rem}
 .stMarkdown p, .stMarkdown li {font-size:17px;line-height:1.75}
 [data-testid="stSpinner"]{position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 9999;
  background:#ffffff; border:1px solid #cbd5e1; border-radius:999px; padding:8px 20px; box-shadow:0 4px 16px rgba(0,0,0,.15)}
