@@ -6,6 +6,12 @@ import datetime as _dt
 import threading
 from collections import OrderedDict
 
+KST = _dt.timezone(_dt.timedelta(hours=9))  # 서버(UTC)가 아니라 한국 날짜로
+
+
+def today_kst() -> _dt.date:
+    return _dt.datetime.now(KST).date()
+
 
 def session_left(used: int, limit: int) -> int:
     """세션에서 남은 분석 횟수. limit이 0 이하면 제한 없음(-1). 음수로 내려가지 않는다."""
@@ -19,7 +25,7 @@ class DailyCounter:
 
     def __init__(self, limit: int, today=None):
         self.limit = int(limit)
-        self._today = today or (lambda: _dt.date.today())
+        self._today = today or today_kst
         self._lock = threading.Lock()
         self._day = self._today()
         self._count = 0

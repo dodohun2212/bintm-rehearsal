@@ -7,6 +7,7 @@ import re
 
 from core.diagnose import MCQ
 from core.figure import figure_html
+from core.guard import today_kst
 from core.note import DETAILED, NORMAL, SHORT, lecture_order, professor_quotes
 from core.priority import NEXT, NOW, REVIEW, group
 
@@ -89,7 +90,8 @@ def _reason_badges(score: dict | None) -> str:
     return "".join(f'<span class="badge{" neg" if neg else ""}">{esc(t)}</span>' for t, neg in badges(score))
 
 
-def _question_block(q: dict, state: dict, cid: str, g: dict | None) -> str:
+def _question_block(q: dict, state: dict, cid: str, g: dict | None, show_conf: bool = True) -> str:
+    """show_conf=False면 헷갈린 점 줄을 빼고 보완 설명 쪽에서 한 번만 보인다."""
     parts = [f'<div class="q">{esc(q["question"])}</div>', figure_html(q.get("figure"))]
     conf = (state.get("confusion") or {}).get(cid, "")
     if q["kind"] == MCQ:
@@ -120,7 +122,7 @@ def _question_block(q: dict, state: dict, cid: str, g: dict | None) -> str:
         rub = "".join(f"<li>{esc(r['point'])} ({r['score']}점)</li>" for r in q.get("rubric", []))
         parts.append(f'<div><b>모범 답안</b>{rich(q.get("answer"))}<ul>{rub}</ul></div>')
     parts.append(f'<div class="info">문제 근거 {page_badges(q.get("source_pages"))}</div>')
-    if conf.strip():
+    if show_conf and conf.strip():
         parts.append(f'<div class="info">💬 내가 헷갈린 점: {esc(conf)}</div>')
     return "".join(parts)
 
@@ -131,10 +133,11 @@ def explanation_block(e: dict | None, confusion: str = "", fallback_pages=None) 
     parts = ['<h3>보완 설명</h3>']
     if e.get("my_gap"):
         parts.append(f'<div class="gap"><b>내가 놓친 점</b> {esc(e["my_gap"])}</div>')
-    if confusion.strip():
-        reply = rich(e.get("confusion_reply")) if e.get("confusion_reply") else ""
+    if confusion.strip() and e.get("confusion_reply"):
         parts.append(f'<div class="conf"><b>💬 내가 헷갈린 점에 대한 답</b>'
-                     f'<div class="info">내가 적은 글: {esc(confusion)}</div>{reply}</div>')
+                     f'<div class="info">내가 적은 글: {esc(confusion)}</div>{rich(e["confusion_reply"])}</div>')
+    elif confusion.strip():  # 답이 없으면 적은 글만
+        parts.append(f'<div class="info">💬 내가 헷갈린 점: {esc(confusion)}</div>')
     parts.append(rich(e.get("explanation")))
     if e.get("not_found"):
         parts.append(f'<div class="nf"><b>올린 자료에서 찾지 못함</b> {esc(e.get("not_found_note") or "")}'
@@ -151,14 +154,14 @@ def _card(p: dict, state: dict, score: dict | None) -> str:
     conf = (state.get("confusion") or {}).get(cid, "") or ""
     head = (f'<div><b>{p["rank"]}. {esc(p["name"])}</b> {_status_badge(p["status"])}'
             f'<span class="badge">출제 점수 {p["exam_pct"]}</span><span class="badge">우선순위 {p["priority"]}</span></div>')
-    body = _question_block(q, state, cid, g) if q else ""
+    body = _question_block(q, state, cid, g, show_conf=not e) if q else ""
     pages = (score or {}).get("body_pages") or (score or {}).get("pages")
     return f'<div class="card">{head}{body}{explanation_block(e, conf, pages)}</div>'
 
 
 def study_html(state: dict, today: str | None = None) -> str:
     """① 공부 순서·오답노트."""
-    today = today or _dt.date.today().isoformat()
+    today = today or today_kst().isoformat()
     pr = state.get("priorities") or []
     scores = {s["concept_id"]: s for s in state.get("scores") or []}
     groups = group(pr)
@@ -208,7 +211,7 @@ def study_html(state: dict, today: str | None = None) -> str:
 
 def notes_html(state: dict, today: str | None = None) -> str:
     """② 시험 대비 요약 노트 (요약 노트만)."""
-    today = today or _dt.date.today().isoformat()
+    today = today or today_kst().isoformat()
     notes = state.get("notes") or {}
     concepts = {c["id"]: c for c in state.get("concepts") or []}
     pr = {p["concept_id"]: p for p in state.get("priorities") or []}
@@ -248,5 +251,5 @@ def notes_html(state: dict, today: str | None = None) -> str:
 
 
 def file_names(today: str | None = None) -> tuple[str, str]:
-    today = today or _dt.date.today().isoformat()
+    today = today or today_kst().isoformat()
     return f"빈틈노트_공부순서_오답노트_{today}.html", f"빈틈노트_요약노트_{today}.html"

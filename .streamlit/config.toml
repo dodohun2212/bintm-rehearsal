@@ -3,3 +3,4 @@ maxUploadSize = 30
 
 [theme]
 base = "light"
+primaryColor = "#2f5bd3"

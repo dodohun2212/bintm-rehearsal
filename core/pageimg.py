@@ -6,8 +6,8 @@ PAGE_WIDTH = 900
 
 def page_jpeg(data: bytes | None, page_no: int, width: int = PAGE_WIDTH) -> bytes | None:
     """PDF가 아니거나 쪽 번호가 범위 밖이면 None."""
-    if not data or page_no < 1:
-        return None
+    if not data or page_no < 1 or b"%PDF" not in data[:1024]:
+        return None  # PyMuPDF는 PPTX 같은 다른 형식도 열어 그리므로 PDF 머리글을 먼저 본다
     try:
         import pymupdf
         with pymupdf.open(stream=data, filetype="pdf") as doc:

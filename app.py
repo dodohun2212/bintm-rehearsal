@@ -911,10 +911,10 @@ def study_card(p: dict, est: dict) -> None:
         st.html(f'<div><b>{p["rank"]}. {esc(p["name"])}</b> {status_badge(p["status"])}'
                 f'{badge("출제 점수 " + str(p["exam_pct"]))}{badge("우선순위 " + str(p["priority"]))}</div>')
         q, g = ss.questions.get(cid), ss.grading.get(cid)
+        e = ss.explanations.get(cid)
         if q and g:
             with st.expander(f"📝 내 문제와 답 다시 보기 · {g['status']} {g['score']}/10"):
-                st.html(EP._question_block(q, est, cid, g))
-        e = ss.explanations.get(cid)
+                st.html(EP._question_block(q, est, cid, g, show_conf=not e))
         if e:
             st.html(EP.explanation_block(e, est["confusion"].get(cid, "")))
         elif cid in ss.explain_failed:

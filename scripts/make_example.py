@@ -32,6 +32,11 @@ STUDY_HTML, NOTES_HTML = "공부순서_오답노트.html", "요약노트.html"
 STUDY_MD, NOTES_MD = "공부순서_오답노트.md", "요약노트.md"
 
 
+def _today() -> str:
+    from core.guard import today_kst
+    return today_kst().isoformat()
+
+
 def load_keys() -> None:
     """환경변수가 없으면 .streamlit/secrets.toml에서 읽는다. 값은 출력하지 않는다."""
     from core.llm import set_keys
@@ -68,7 +73,7 @@ def run(out_dir: Path = OUT, today: str | None = None) -> dict:
     load_keys()
     if not has_llm_key():
         raise SystemExit("AI 키가 없어요. .streamlit/secrets.toml 또는 환경변수 ANTHROPIC_API_KEY를 넣어 주세요.")
-    today = today or _dt.date.today().isoformat()
+    today = today or _today()
     usage, times, fails = Usage(), {}, []
 
     t0 = time.time()
@@ -263,8 +268,7 @@ def from_html(study_path: str, notes_path: str, out_dir: Path, note: str, extra:
     """배포 앱에서 내려받은 HTML 2개로 결과 예시를 만든다."""
     study = Path(study_path).read_text(encoding="utf-8")
     notes_h = Path(notes_path).read_text(encoding="utf-8")
-    m = re.search(r"(\d{4}-\d{2}-\d{2})", study)
-    summary = {"today": m.group(1) if m else _dt.date.today().isoformat(), "source": note,
+    summary = {"today": _today(), "source": note,
                "model": "claude-sonnet-5-5 (배포 앱 설정)", "extra": extra, "fails": []}
     write_outputs(out_dir, study, notes_h, summary)
     return summary
