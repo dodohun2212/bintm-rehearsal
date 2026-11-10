@@ -1,0 +1,16 @@
+# 키 (절대 커밋하지 않음)
+.streamlit/secrets.toml
+.env
+
+# 비공개 실제 자료·녹음
+실제자료_비공개/
+*.m4a
+*.mp3
+*.wav
+
+# 파이썬
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
