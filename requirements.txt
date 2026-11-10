@@ -1,0 +1,7 @@
+streamlit
+anthropic
+openai
+pymupdf
+python-pptx
+pydantic
+pytest
