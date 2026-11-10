@@ -100,7 +100,7 @@ python -m streamlit run app.py
 python -m pytest -q tests/
 ```
 
-2026-11-10 결과(Windows, Python 3.14.7): `62 passed`. 테스트 번호 T-01~T-53은 개발기획안 11.1과 같습니다.
+2026-11-10 결과(Windows, Python 3.14.7): `63 passed`. 테스트 번호 T-01~T-53은 개발기획안 11.1과 같습니다.
 
 **샘플 상위 3개 (T-01, 저장된 AI 결과 `tests/fixtures/`로 코드가 계산)**: 이진 트리의 순회 100점 · 힙의 삭제 연산 98점 · 힙의 삽입 연산 96점, 이진 탐색 트리의 삭제 0점(맨 아래).
 

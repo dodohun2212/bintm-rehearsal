@@ -86,3 +86,20 @@ def test_t39_parallel_counts_each_call():
     res, errs, usage = run_parallel({k: job for k in range(3)}, workers=3)
     assert len(res) == 3 and not errs
     assert usage.calls == 6
+
+
+def test_t37_sample_questions_reused_in_app():
+    """샘플 자료의 진단 문제는 두 번째 사람부터 AI를 부르지 않는다(빈 저장소도 재사용 대상)."""
+    from streamlit.testing.v1 import AppTest
+
+    from tests.helpers import ROOT
+
+    calls = []
+    for _ in range(2):
+        at = AppTest.from_file(str(ROOT / "app.py"), default_timeout=60).run()
+        next(b for b in at.button if b.label == "샘플로 체험").click().run()
+        before = at.session_state["usage"].calls
+        next(b for b in at.button if "개념 진단하기" in b.label).click().run()
+        assert not at.exception
+        calls.append(at.session_state["usage"].calls - before)
+    assert calls[0] > 0 and calls[1] == 0

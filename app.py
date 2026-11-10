@@ -519,7 +519,7 @@ def ensure_questions() -> None:
         tasks = {}
         for key, (cid, kind) in need.items():
             ck = (s["run_id"], cid, kind, tuple(names))
-            hit = cache.get(ck) if cache else None
+            hit = cache.get(ck) if cache is not None else None
             if hit:
                 s["qbank"][key] = hit  # 저장된 문제: AI 호출·사용량 없음
                 continue
@@ -531,7 +531,7 @@ def ensure_questions() -> None:
             add_usage(usage)
             for key, q in res.items():
                 s["qbank"][key] = q
-                if cache:
+                if cache is not None:
                     cid, kind = need[key]
                     cache.put((s["run_id"], cid, kind, tuple(names)), q)
             for key, e in errs.items():
