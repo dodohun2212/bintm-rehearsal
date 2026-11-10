@@ -60,7 +60,7 @@ def _table_md(tbl: str) -> str:
     if not rows:
         return ""
     n = rows[0].count("|") - 1
-    return "\n" + rows[0] + "\n|" + "---|" * n + "\n" + "\n".join(rows[1:]) + "\n"
+    return "\n\n" + rows[0] + "\n|" + "---|" * n + "\n" + "\n".join(rows[1:]) + "\n\n"
 
 
 def html_to_md(doc: str) -> str:
@@ -69,22 +69,29 @@ def html_to_md(doc: str) -> str:
     s = re.sub(r"<style>.*?</style>", "", s, flags=re.S)
     s = re.sub(r"<table[^>]*>.*?</table>", lambda m: _table_md(m.group(0)), s, flags=re.S)
     s = re.sub(r'<img[^>]*alt="([^"]*)"[^>]*/?>', lambda m: "\n(그림) " + m.group(1) + "\n", s)
+    s = re.sub(r'<span class="bar">.*?</span>', "", s)
+    s = re.sub(r"<div class='metric'>(.*?)<b>(.*?)</b></div>", r"\n- \1: **\2**", s)
     s = re.sub(r'<span class="pg">(.*?)</span>', r"(\1)", s)
-    s = re.sub(r'<span class="b[^"]*">(.*?)</span>', r" `\1` ", s)
-    s = re.sub(r'<span class="bar">.*?</span></span>', "", s)
+    s = re.sub(r"""<span class=["']b[^"']*["']>(.*?)</span>""", r" `\1` ", s)
     s = re.sub(r"<h1>(.*?)</h1>", r"\n# \1\n", s, flags=re.S)
     s = re.sub(r"<h2>(.*?)</h2>", r"\n## \1\n", s, flags=re.S)
     s = re.sub(r"<h3>(.*?)</h3>", r"\n### \1\n", s, flags=re.S)
     s = re.sub(r"<summary>(.*?)</summary>", r"\n**\1**\n", s, flags=re.S)
     s = re.sub(r"<li>(.*?)</li>", r"\n- \1", s, flags=re.S)
-    s = re.sub(r"</?b>", "**", s)
+    s = re.sub(r"<b>\s*(.*?)\s*</b>", r"**\1** ", s, flags=re.S)  # '**Q. **'는 GitHub에서 굵게 안 보임
     s = re.sub(r"<br\s*/?>", "\n", s)
     s = re.sub(r"</(p|div|ul|details)>", "\n", s)
     s = re.sub(r"<[^>]+>", "", s)
     s = html.unescape(s)
     s = re.sub(r"[ \t]+\n", "\n", s)
     s = re.sub(r"\n{3,}", "\n\n", s)
-    return s.strip() + "\n"
+    # 줄바꿈 한 번도 GitHub에서 줄이 바뀌도록 줄 끝에 빈칸 두 개(표·제목 줄은 그대로)
+    lines = s.strip().split("\n")
+    for i in range(len(lines) - 1):
+        cur, nxt = lines[i], lines[i + 1]
+        if cur.strip() and nxt.strip() and not cur.startswith(("#", "|")) and not nxt.startswith("|"):
+            lines[i] = cur + "  "
+    return "\n".join(lines) + "\n"
 
 
 # ---------- 앱과 같은 순서로 돌리기 ----------
